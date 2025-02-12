@@ -34,42 +34,42 @@
  */
 int build_cmd_list(char *cmd_line, command_list_t *clist)
 {
+    //Initialize vars for token, rest of the command and command count
     char *token;
     char *rest = cmd_line;
     int cmd_count = 0;
 
-    // Initialize command list
+    //Initialize command list count and clear command list
     clist->num = 0;
     memset(clist->commands, 0, sizeof(clist->commands));
 
-    // Split the command line by PIPE_CHAR
+    //Loop through command using strtok_r to  split command by pipe
+    //Loop over every token which is a tab or space
     while ((token = strtok_r(rest, PIPE_STRING, &rest)))
     {
-        // Trim leading and trailing spaces
         while (isspace((unsigned char)*token)) token++;
+        //Set pointer to last char of token, reverse loop to remove trailing spaces
         char *end = token + strlen(token) - 1;
         while (end > token && isspace((unsigned char)*end)) end--;
-        *(end + 1) = '\0';
 
-        if (strlen(token) == 0)
-        {
-            continue;
-        }
-
+        //Check if command count is greater than max commands
         if (cmd_count >= CMD_MAX)
         {
             return ERR_TOO_MANY_COMMANDS;
         }
 
-        // Parse the command and arguments
+        
+        //Split command into executable and arguments
         char *exe = strtok(token, " ");
         char *args = strtok(NULL, "");
 
+        //Check if command or args are too big
         if (strlen(exe) >= EXE_MAX || (args && strlen(args) >= ARG_MAX))
         {
             return ERR_CMD_OR_ARGS_TOO_BIG;
         }
 
+        //Copy executable and args, increment command count
         strcpy(clist->commands[cmd_count].exe, exe);
         if (args)
         {
@@ -78,8 +78,10 @@ int build_cmd_list(char *cmd_line, command_list_t *clist)
         cmd_count++;
     }
 
+    //Set command count
     clist->num = cmd_count;
 
+    //Check if no commands
     if (cmd_count == 0)
     {
         return WARN_NO_CMDS;
